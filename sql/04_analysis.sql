@@ -145,6 +145,9 @@ ORDER BY data_year, drug_class = 'All classes', drug_class;
 
 
 -- Q5. Which brands lead the market each year, and where does Januvia rank?
+-- Brands are ranked as brand families (dim_product.brand_family), so pack/device
+-- variants count together: Victoza 2-Pak + 3-Pak = Victoza; Bydureon, Bydureon Bcise
+-- and Bydureon Pen = Bydureon. Every other family is a single product.
 -- RANK() OVER (PARTITION BY data_year ORDER BY claims DESC) restarts the ranking at 1
 -- for every year. Ties share a rank. Keep the top 10 plus every Januvia-family row,
 -- even when it falls outside the top 10.
@@ -152,13 +155,13 @@ CREATE OR REPLACE VIEW q5_top_brands_by_year AS
 WITH brand_year AS (
     SELECT
         f.data_year,
-        d.brand_name,
+        d.brand_family,
         d.drug_class,
-        d.januvia_family,
+        max(d.januvia_family)               AS januvia_family,
         CAST(sum(f.total_claims) AS BIGINT) AS claims
     FROM fact_state_product_year AS f
     JOIN dim_product AS d USING (product_id)
-    GROUP BY f.data_year, d.brand_name, d.drug_class, d.januvia_family
+    GROUP BY f.data_year, d.brand_family, d.drug_class
 ),
 ranked AS (
     SELECT
@@ -169,7 +172,7 @@ ranked AS (
 )
 SELECT
     data_year,
-    brand_name,
+    brand_family,
     drug_class,
     claims,
     share_pct,

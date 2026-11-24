@@ -50,17 +50,19 @@ COPY (
 ) TO 'outputs/q4_cost_per_fill_by_class.csv' (HEADER true, DELIMITER ',');
 
 COPY (
-    SELECT data_year, brand_name, drug_class, claims,
+    SELECT data_year, brand_family, drug_class, claims,
            round(share_pct, 1) AS share_pct,
            rank_in_year
     FROM q5_top_brands_by_year
-    ORDER BY data_year, rank_in_year, brand_name
+    ORDER BY data_year, rank_in_year, brand_family
 ) TO 'outputs/q5_top_brands_by_year.csv' (HEADER true, DELIMITER ',');
 
 -- Validation and exclusions --------------------------------------------------------
 COPY (
     SELECT data_year, cms_national_claims, state_sum_claims, difference,
-           round(pct_diff, 2) AS pct_diff
+           round(pct_diff, 2) AS pct_diff,
+           puerto_rico_claims, other_territories_claims, armed_forces_claims,
+           unknown_claims, foreign_claims, residual_gap
     FROM validation_reconciliation
     ORDER BY data_year
 ) TO 'outputs/validation_reconciliation.csv' (HEADER true, DELIMITER ',');

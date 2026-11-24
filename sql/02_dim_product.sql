@@ -87,12 +87,22 @@ FROM latest;
 -- ---------------------------------------------------------------------------------
 -- 3. dim_product: the in-market products. product_id is a simple number (1, 2, 3...)
 --    given by ROW_NUMBER(), ordered by class then brand so the IDs are stable.
+--    brand_family rolls up pack and device variants that CMS lists as separate brand
+--    names, so the brand ranking (Q5) doesn't split one medicine into several rows:
+--      Victoza 2-Pak, Victoza 3-Pak                    -> Victoza
+--      Bydureon, Bydureon Bcise, Bydureon Pen          -> Bydureon
+--    Every other product's brand_family is its own brand_name.
 -- ---------------------------------------------------------------------------------
 CREATE OR REPLACE TABLE dim_product AS
 SELECT
     CAST(ROW_NUMBER() OVER (ORDER BY drug_class, brand_key) AS INTEGER) AS product_id,
     brand_key,
     brand_name,
+    CASE
+        WHEN brand_key IN ('victoza 2-pak', 'victoza 3-pak')               THEN 'Victoza'
+        WHEN brand_key IN ('bydureon', 'bydureon bcise', 'bydureon pen')   THEN 'Bydureon'
+        ELSE brand_name
+    END AS brand_family,
     generic_name,
     drug_class,
     CASE WHEN brand_key IN ('januvia', 'janumet', 'janumet xr',

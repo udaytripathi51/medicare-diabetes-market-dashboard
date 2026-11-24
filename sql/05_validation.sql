@@ -9,19 +9,49 @@
 
 -- Reconciliation. CMS's National rows are used ONLY here. The same product rule as
 -- the fact table applies (molecule stem AND brand_key join), so both sides cover the
--- same products. A gap is expected: National also includes prescribers in territories,
--- armed forces, unknown and foreign locations, which the 51-state sum leaves out.
+-- same products. A gap is expected: National also includes prescribers outside the
+-- 50 states + DC. Those geographies are added back one group at a time, and whatever
+-- is left over is the residual gap:
+--   puerto_rico       = code 72
+--   other_territories = any other numeric code above 56 (60 American Samoa, 66 Guam,
+--                       69 Northern Mariana Islands, 78 Virgin Islands)
+--   armed_forces      = 9A, 9B, 9C
+--   unknown           = 9D
+--   foreign           = 9E
+-- (A few State rows have a blank code; none of them are in-market products.)
+-- residual_gap = difference - all five groups. 0 means the gap is fully explained.
 CREATE OR REPLACE VIEW validation_reconciliation AS
-WITH cms_national AS (
+WITH in_market_raw AS (
+    -- raw rows of in-market products, at any geography level
     SELECT
         r.data_year,
-        CAST(sum(coalesce(TRY_CAST(r.Tot_Clms AS BIGINT), 0)) AS BIGINT) AS cms_national_claims
+        r.Prscrbr_Geo_Lvl,
+        trim(r.Prscrbr_Geo_Cd)                          AS geo_code,
+        coalesce(TRY_CAST(r.Tot_Clms AS BIGINT), 0)     AS claims
     FROM raw_geo_drug AS r
     JOIN dim_product  AS d
       ON lower(trim(r.Brnd_Name)) = d.brand_key
-    WHERE r.Prscrbr_Geo_Lvl = 'National'
-      AND is_market_molecule(r.Gnrc_Name)
-    GROUP BY r.data_year
+    WHERE is_market_molecule(r.Gnrc_Name)
+),
+cms_national AS (
+    SELECT data_year, CAST(sum(claims) AS BIGINT) AS cms_national_claims
+    FROM in_market_raw
+    WHERE Prscrbr_Geo_Lvl = 'National'
+    GROUP BY data_year
+),
+non_state AS (
+    -- sum(CASE ...) puts each geography group into its own column
+    SELECT
+        data_year,
+        CAST(sum(CASE WHEN geo_code = '72' THEN claims ELSE 0 END) AS BIGINT) AS puerto_rico_claims,
+        CAST(sum(CASE WHEN TRY_CAST(geo_code AS INTEGER) > 56 AND geo_code <> '72'
+                      THEN claims ELSE 0 END) AS BIGINT)                       AS other_territories_claims,
+        CAST(sum(CASE WHEN geo_code IN ('9A', '9B', '9C') THEN claims ELSE 0 END) AS BIGINT) AS armed_forces_claims,
+        CAST(sum(CASE WHEN geo_code = '9D' THEN claims ELSE 0 END) AS BIGINT) AS unknown_claims,
+        CAST(sum(CASE WHEN geo_code = '9E' THEN claims ELSE 0 END) AS BIGINT) AS foreign_claims
+    FROM in_market_raw
+    WHERE Prscrbr_Geo_Lvl = 'State'
+    GROUP BY data_year
 ),
 state_sum AS (
     SELECT
@@ -34,10 +64,19 @@ SELECT
     n.data_year,
     n.cms_national_claims,
     s.state_sum_claims,
-    n.cms_national_claims - s.state_sum_claims                               AS difference,
-    100.0 * (n.cms_national_claims - s.state_sum_claims) / n.cms_national_claims AS pct_diff
+    n.cms_national_claims - s.state_sum_claims                                   AS difference,
+    100.0 * (n.cms_national_claims - s.state_sum_claims) / n.cms_national_claims AS pct_diff,
+    g.puerto_rico_claims,
+    g.other_territories_claims,
+    g.armed_forces_claims,
+    g.unknown_claims,
+    g.foreign_claims,
+    (n.cms_national_claims - s.state_sum_claims)
+      - (g.puerto_rico_claims + g.other_territories_claims + g.armed_forces_claims
+         + g.unknown_claims + g.foreign_claims)                                  AS residual_gap
 FROM cms_national AS n
 JOIN state_sum    AS s USING (data_year)
+JOIN non_state    AS g USING (data_year)
 ORDER BY n.data_year;
 
 
