@@ -1,0 +1,48 @@
+product_id,brand_key,brand_name,generic_name,drug_class,is_msd_brand,januvia_family
+1,alogliptin,Alogliptin,Alogliptin Benzoate,DPP-4,0,0
+2,alogliptin-metformin,Alogliptin-Metformin,Alogliptin Benz/Metformin Hcl,DPP-4,0,0
+3,alogliptin-pioglitazone,Alogliptin-Pioglitazone,Alogliptin Benz/Pioglitazone,DPP-4,0,0
+4,janumet,Janumet,Sitagliptin Phos/Metformin Hcl,DPP-4,1,1
+5,janumet xr,Janumet Xr,Sitagliptin Phos/Metformin Hcl,DPP-4,1,1
+6,januvia,Januvia,Sitagliptin Phosphate,DPP-4,1,1
+7,jentadueto,Jentadueto,Linagliptin/Metformin Hcl,DPP-4,0,0
+8,jentadueto xr,Jentadueto Xr,Linagliptin/Metformin Hcl,DPP-4,0,0
+9,kazano,Kazano,Alogliptin Benz/Metformin Hcl,DPP-4,0,0
+10,kombiglyze xr,Kombiglyze Xr,Saxagliptin Hcl/Metformin Hcl,DPP-4,0,0
+11,nesina,Nesina,Alogliptin Benzoate,DPP-4,0,0
+12,onglyza,Onglyza,Saxagliptin Hcl,DPP-4,0,0
+13,oseni,Oseni,Alogliptin Benz/Pioglitazone,DPP-4,0,0
+14,saxagliptin hcl,Saxagliptin Hcl,Saxagliptin Hcl,DPP-4,0,0
+15,saxagliptin-metformin er,Saxagliptin-Metformin Er,Saxagliptin Hcl/Metformin Hcl,DPP-4,0,0
+16,sitagliptin,Sitagliptin,Sitagliptin,DPP-4,0,0
+17,sitagliptin-metformin,Sitagliptin-Metformin,Sitagliptin/Metformin Hcl,DPP-4,0,0
+18,tradjenta,Tradjenta,Linagliptin,DPP-4,0,0
+19,glyxambi,Glyxambi,Empagliflozin/Linagliptin,DPP-4 + SGLT2 combo,0,0
+20,qtern,Qtern,Dapagliflozin/Saxagliptin Hcl,DPP-4 + SGLT2 combo,0,0
+21,steglujan,Steglujan,Ertugliflozin/Sitagliptin Phos,DPP-4 + SGLT2 combo,1,0
+22,trijardy xr,Trijardy Xr,Empaglifloz/Linaglip/Metformin,DPP-4 + SGLT2 combo,0,0
+23,adlyxin,Adlyxin,Lixisenatide,GLP-1,0,0
+24,bydureon,Bydureon,Exenatide Microspheres,GLP-1,0,0
+25,bydureon bcise,Bydureon Bcise,Exenatide Microspheres,GLP-1,0,0
+26,bydureon pen,Bydureon Pen,Exenatide Microspheres,GLP-1,0,0
+27,byetta,Byetta,Exenatide,GLP-1,0,0
+28,liraglutide,Liraglutide,Liraglutide,GLP-1,0,0
+29,mounjaro,Mounjaro,Tirzepatide,GLP-1,0,0
+30,ozempic,Ozempic,Semaglutide,GLP-1,0,0
+31,rybelsus,Rybelsus,Semaglutide,GLP-1,0,0
+32,tanzeum,Tanzeum,Albiglutide,GLP-1,0,0
+33,trulicity,Trulicity,Dulaglutide,GLP-1,0,0
+34,victoza 2-pak,Victoza 2-Pak,Liraglutide,GLP-1,0,0
+35,victoza 3-pak,Victoza 3-Pak,Liraglutide,GLP-1,0,0
+36,dapagliflozin,Dapagliflozin,Dapagliflozin Propanediol,SGLT2,0,0
+37,dapagliflozin-metformin er,Dapagliflozin-Metformin Er,Dapaglifloz Propaned/Metformin,SGLT2,0,0
+38,farxiga,Farxiga,Dapagliflozin Propanediol,SGLT2,0,0
+39,invokamet,Invokamet,Canagliflozin/Metformin Hcl,SGLT2,0,0
+40,invokamet xr,Invokamet Xr,Canagliflozin/Metformin Hcl,SGLT2,0,0
+41,invokana,Invokana,Canagliflozin,SGLT2,0,0
+42,jardiance,Jardiance,Empagliflozin,SGLT2,0,0
+43,segluromet,Segluromet,Ertugliflozin/Metformin,SGLT2,1,0
+44,steglatro,Steglatro,Ertugliflozin Pidolate,SGLT2,1,0
+45,synjardy,Synjardy,Empagliflozin/Metformin Hcl,SGLT2,0,0
+46,synjardy xr,Synjardy Xr,Empagliflozin/Metformin Hcl,SGLT2,0,0
+47,xigduo xr,Xigduo Xr,Dapaglifloz Propaned/Metformin,SGLT2,0,0

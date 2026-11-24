@@ -1,0 +1,25 @@
+check_name,expected,actual,passed
+1. 51 states in every year,51 in each of 6 years,"min 51, max 51, across 6 years",true
+"2. No duplicate (data_year, state_fips, product_id) rows in the fact table",0,0,true
+3a. Cast failures in Tot_Clms,0,0,true
+3b. Cast failures in Tot_30day_Fills,0,0,true
+3c. Cast failures in Tot_Drug_Cst,0,0,true
+4. Blank (suppressed) claim values in the rows used (report only),report only,0,
+5. Spot check: Januvia,DPP-4,DPP-4,true
+5. Spot check: Janumet,DPP-4,DPP-4,true
+5. Spot check: Janumet XR,DPP-4,DPP-4,true
+5. Spot check: Tradjenta,DPP-4,DPP-4,true
+5. Spot check: Jardiance,SGLT2,SGLT2,true
+5. Spot check: Farxiga,SGLT2,SGLT2,true
+5. Spot check: Ozempic,GLP-1,GLP-1,true
+5. Spot check: Trulicity,GLP-1,GLP-1,true
+5. Spot check: Mounjaro,GLP-1,GLP-1,true
+5. Spot check: Rybelsus,GLP-1,GLP-1,true
+5. Spot check: Glyxambi,DPP-4 + SGLT2 combo,DPP-4 + SGLT2 combo,true
+5. Spot check: Steglujan,DPP-4 + SGLT2 combo,DPP-4 + SGLT2 combo,true
+5. Spot check: Wegovy,excluded,excluded,true
+5. Spot check: Zepbound,excluded,excluded,true
+5. Spot check: Saxenda,excluded,excluded,true
+5. Spot check: Soliqua,excluded,excluded,true
+5. Spot check: Xultophy,excluded,excluded,true
+6. Every drug_class has claims in every year,24 (4 classes x 6 years),24,true
