@@ -1,10 +1,10 @@
 check_name,expected,actual,passed
 1. 51 states in every year,51 in each of 6 years,"min 51, max 51, across 6 years",true
-"2. No duplicate (data_year, state_fips, product_id) rows in the fact table",0,0,true
+2. No duplicate raw rows per data_year x geography x brand_key (before aggregation),0,0,true
 3a. Cast failures in Tot_Clms,0,0,true
 3b. Cast failures in Tot_30day_Fills,0,0,true
 3c. Cast failures in Tot_Drug_Cst,0,0,true
-4. Blank (suppressed) claim values in the rows used (report only),report only,0,
+4. Blank claim values (expected 0),0,0,true
 5. Spot check: Januvia,DPP-4,DPP-4,true
 5. Spot check: Janumet,DPP-4,DPP-4,true
 5. Spot check: Janumet XR,DPP-4,DPP-4,true
@@ -23,3 +23,6 @@ check_name,expected,actual,passed
 5. Spot check: Soliqua,excluded,excluded,true
 5. Spot check: Xultophy,excluded,excluded,true
 6. Every drug_class has claims in every year,24 (4 classes x 6 years),24,true
+7. Smallest in-market State claim value is at least 11,>= 11,11,true
+8. Each data_year comes from exactly one file,1 file for each of 6 years,"min 1, max 1 files per year",true
+9. Each brand gets the same drug_class from every year's generic spelling,0,0,true

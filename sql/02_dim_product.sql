@@ -27,6 +27,18 @@ CREATE OR REPLACE MACRO has_glp1(generic) AS
 CREATE OR REPLACE MACRO is_market_molecule(generic) AS
     has_dpp4(generic) OR has_sglt2(generic) OR has_glp1(generic);
 
+-- The drug_class rule for one generic-name spelling. CASE checks the rules top to
+-- bottom and stops at the first one that is true, so a DPP-4 + SGLT2 product is caught
+-- by rule 1 before rules 2 and 3. Metformin / pioglitazone partners are ignored, so
+-- those combos keep the class of their other molecule.
+CREATE OR REPLACE MACRO drug_class_of(generic) AS
+    CASE
+        WHEN has_dpp4(generic) AND has_sglt2(generic) THEN 'DPP-4 + SGLT2 combo'
+        WHEN has_dpp4(generic)  THEN 'DPP-4'
+        WHEN has_sglt2(generic) THEN 'SGLT2'
+        WHEN has_glp1(generic)  THEN 'GLP-1'
+    END;
+
 -- ---------------------------------------------------------------------------------
 -- 2. product_mapping: every candidate product with its class and (if any) exclusion
 --    reason. It is a TEMP table: a working step that disappears when the pipeline
@@ -36,29 +48,42 @@ CREATE OR REPLACE MACRO is_market_molecule(generic) AS
 --    in capitalisation or in the generic name across years doesn't split a product.
 --    Display spelling = the one from the latest year the brand appears.
 --
+--    The class and insulin rules are applied to EVERY year's generic spelling of a
+--    brand, not just the latest:
+--      * a brand is excluded as an insulin combination if ANY of its spellings
+--        contains 'insulin' (bool_or = "true if at least one row is true");
+--      * every spelling should give the same class. If they ever disagree, the
+--        latest year's class is kept here and validation check 9 fails.
+--
 --    Brands whose generic name changes across years (found while profiling):
 --      * Steglujan: 'Ertugliflozin/Sitagliptin' (2019-2021)
 --                   -> 'Ertugliflozin/Sitagliptin Phos' (2022-2024)
 --      * Xigduo XR: 'Dapagliflozin/Metformin Hcl' (2019-2022)
 --                   -> 'Dapaglifloz Propaned/Metformin' (2023-2024)
+--    Both keep the same class in every year.
 -- ---------------------------------------------------------------------------------
 CREATE OR REPLACE TEMP TABLE product_mapping AS
 WITH candidates AS (
-    -- every raw row whose generic name contains a market molecule
+    -- every raw row whose generic name contains a market molecule, with the class and
+    -- insulin flag of that row's own generic spelling
     SELECT
-        lower(trim(Brnd_Name)) AS brand_key,
-        trim(Brnd_Name)        AS brand_name,
-        trim(Gnrc_Name)        AS generic_name,
-        data_year
+        lower(trim(Brnd_Name))            AS brand_key,
+        trim(Brnd_Name)                   AS brand_name,
+        trim(Gnrc_Name)                   AS generic_name,
+        data_year,
+        drug_class_of(Gnrc_Name)          AS spelling_class,
+        lower(Gnrc_Name) LIKE '%insulin%' AS spelling_has_insulin
     FROM raw_geo_drug
     WHERE is_market_molecule(Gnrc_Name)
 ),
-latest AS (
+per_brand AS (
     -- one row per brand; arg_max(x, data_year) = "the value of x in the latest year"
     SELECT
         brand_key,
-        arg_max(brand_name,   data_year) AS brand_name,
-        arg_max(generic_name, data_year) AS generic_name
+        arg_max(brand_name,     data_year) AS brand_name,
+        arg_max(generic_name,   data_year) AS generic_name,
+        arg_max(spelling_class, data_year) AS drug_class,
+        bool_or(spelling_has_insulin)      AS any_spelling_has_insulin
     FROM candidates
     GROUP BY brand_key
 )
@@ -66,23 +91,14 @@ SELECT
     brand_key,
     brand_name,
     generic_name,
-    -- CASE checks the rules top to bottom and stops at the first one that is true,
-    -- so a DPP-4 + SGLT2 product is caught by rule 1 before rules 2 and 3.
-    -- Metformin / pioglitazone partners are ignored, so those combos keep the class
-    -- of their other molecule.
+    drug_class,
     CASE
-        WHEN has_dpp4(generic_name) AND has_sglt2(generic_name) THEN 'DPP-4 + SGLT2 combo'
-        WHEN has_dpp4(generic_name)  THEN 'DPP-4'
-        WHEN has_sglt2(generic_name) THEN 'SGLT2'
-        WHEN has_glp1(generic_name)  THEN 'GLP-1'
-    END AS drug_class,
-    CASE
-        WHEN lower(generic_name) LIKE '%insulin%'
+        WHEN any_spelling_has_insulin
             THEN 'Insulin combination (generic name contains insulin)'
         WHEN brand_key IN ('wegovy', 'zepbound', 'saxenda')
             THEN 'Obesity brand (weight management, not Type 2 diabetes)'
     END AS exclusion_reason
-FROM latest;
+FROM per_brand;
 
 -- ---------------------------------------------------------------------------------
 -- 3. dim_product: the in-market products. product_id is a simple number (1, 2, 3...)
