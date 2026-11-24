@@ -1,0 +1,6 @@
+data/raw/
+*.duckdb
+*.wal
+__pycache__/
+.claude/
+CLAUDE.md
